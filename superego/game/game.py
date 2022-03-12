@@ -278,8 +278,6 @@ class PointsBank:
         self._players_pool = players_pool
 
     def give_points(self, player: Player, amount: int) -> None:
-        if self._points_in_bank < amount:
-            raise ValueError('Bank size exceeded')
         self._points_in_bank -= amount
         player.give_points(amount)
 
@@ -669,15 +667,23 @@ class ResultPhase(GamePhase):
                == self._game_table.in_game_players_count
 
     def _advance(self) -> GamePhase:
-        if self._is_last_round() or not self._at_least_two_players_left():
+        if self._is_game_to_end():
             return self._end_game()
         return self._advance_to_next_round()
+
+    def _is_game_to_end(self):
+        return self._is_last_round()\
+               or not self._at_least_two_players_left()\
+               or self._no_points_left()
 
     def _is_last_round(self) -> bool:
         return self._context.round_number == self._context.max_rounds
 
     def _at_least_two_players_left(self) -> bool:
         return self._game_table.in_game_players_count > 1
+
+    def _no_points_left(self) -> bool:
+        return self._game_table.points_in_bank <= 0
 
     def _end_game(self) -> GamePhase:
         return GameOver(self._context, self._game_table, self._clock)
