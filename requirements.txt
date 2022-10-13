@@ -1,0 +1,17 @@
+attrs==22.1.0
+dataclasses==0.6
+dataclasses-serialization==1.3.1
+iniconfig==1.1.1
+more-properties==1.1.1
+mypy-extensions==0.4.3
+packaging==21.3
+pluggy==1.0.0
+py==1.11.0
+pyparsing==3.0.9
+pytest==7.1.3
+tomli==2.0.1
+toolz==0.12.0
+toposort==1.7
+typing-inspect==0.8.0
+typing_extensions==4.4.0
+websockets==10.3
