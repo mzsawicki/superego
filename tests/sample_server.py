@@ -14,9 +14,11 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     host = LobbyMember('Bob')
+    host._guid = UUID('f19b26d2-d146-422c-a952-d45cfc276b85')
     guest_1 = LobbyMember('Alice')
     guest_1._guid = UUID('a7da476f-c81b-4bc7-ac17-e7e675ccc95f')
     guest_2 = LobbyMember('Drew')
+    guest_2._guid = UUID('d3299cf9-3305-41e9-b2b1-bfdd3e22a7c2')
 
     deck = test_deck
 
