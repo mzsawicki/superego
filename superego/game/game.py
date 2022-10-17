@@ -318,16 +318,19 @@ class GameTable:
     def get_player_answer(self, player: Player) -> Answer:
         return self._answers_pool.get_player_answer(player)
 
-    def execute_win(self, player: Player) -> None:
+    def execute_winning_guess(self, player: Player) -> None:
         bet = self._bet_pool.get_player_bet(player)
         amount_to_give = bet
         self._points_bank.give_points(player, amount_to_give)
 
-    def execute_loss(self, player: Player) -> None:
+    def execute_loosing_guess(self, player: Player) -> None:
         bet = self._bet_pool.get_player_bet(player)
         self._points_bank.take_points(player, bet)
         if not player.has_points:
             self._players_pool.kick_player(player)
+
+    def execute_answering_player(self, player: Player, correct_guesses: int) -> None:
+        self._points_bank.give_points(player, correct_guesses)
 
     def player_answered(self, player: Player) -> bool:
         return self._answers_pool.get_player_answer(player) != Answer.NO_ANSWER
@@ -374,10 +377,6 @@ class GameTable:
     @property
     def in_game_players_count(self) -> int:
         return len(self.players)
-
-    @property
-    def ready_players(self) -> List[Player]:
-        ready_players = sel
 
 
 class ActionName(Enum):
@@ -594,6 +593,7 @@ class ResultPhase(GamePhase):
         self._ready_players_count: int = 0
         self._players_ready: defaultdict[UUID, bool] = defaultdict(bool)
         self._point_changes: defaultdict[UUID, int] = defaultdict(int)
+        self._correct_guesses: int = 0
         self._clock = clock
 
         self._settle()
@@ -638,17 +638,23 @@ class ResultPhase(GamePhase):
 
     def _settle(self) -> None:
         for player in self._game_table.guessing_players:
-            self._settle_player(player)
+            self._settle_guessing_player(player)
+        self._settle_answering_player(self._game_table.current_player)
 
-    def _settle_player(self, player: Player) -> None:
+    def _settle_guessing_player(self, player: Player) -> None:
         answer_correct = self._player_answered_correctly(player)
         bet = self._game_table.get_player_bet(player)
         if answer_correct:
-            self._game_table.execute_win(player)
+            self._game_table.execute_winning_guess(player)
             self._save_point_change(player, bet)
+            self._correct_guesses += 1
         else:
-            self._game_table.execute_loss(player)
+            self._game_table.execute_loosing_guess(player)
             self._save_point_change(player, -bet)
+
+    def _settle_answering_player(self, player: Player) -> None:
+        self._game_table.execute_answering_player(player, self._correct_guesses)
+        self._save_point_change(player, self._correct_guesses)
 
     def _save_point_change(self, player: Player, points_count: int) -> None:
         self._point_changes[player.guid] = points_count
