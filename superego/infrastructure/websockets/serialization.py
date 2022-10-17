@@ -111,5 +111,7 @@ def _deserialize_event_action(action_text: str) -> EventAction:
         return EventAction.SUBSCRIBE
     elif action_text == EventAction.READ.value:
         return EventAction.READ
+    elif action_text == EventAction.READY.value:
+        return EventAction.READY
     else:
         raise UnknownEventAction(action_text)
