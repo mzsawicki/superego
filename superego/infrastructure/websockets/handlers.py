@@ -4,7 +4,7 @@ from typing import List
 from websockets import WebSocketServerProtocol
 
 from superego.application.usecases import AnswerUseCase, GuessUseCase, \
-    ChangeCardUseCase, GetGameStateUseCase
+    ChangeCardUseCase, GetGameStateUseCase, ReadyUseCase
 from superego.infrastructure.websockets.broadcast import Broadcast
 from superego.infrastructure.websockets.events import Event
 from superego.infrastructure.websockets.serialization import \
@@ -71,6 +71,17 @@ class ChangeCardEventHandler(EventHandler):
     async def handle(self, event: Event,
                      websocket: WebSocketServerProtocol) -> None:
         self._change_card(event.issuer)
+        message = serialize_confirmation()
+        await websocket.send(message)
+
+
+class ReadyEventHandler(EventHandler):
+    def __init__(self, use_case: ReadyUseCase):
+        self._mark_ready: ReadyUseCase = use_case
+
+    async def handle(self, event: Event,
+                     websocket: WebSocketServerProtocol) -> None:
+        self._mark_ready(event.issuer)
         message = serialize_confirmation()
         await websocket.send(message)
 

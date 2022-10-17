@@ -375,6 +375,10 @@ class GameTable:
     def in_game_players_count(self) -> int:
         return len(self.players)
 
+    @property
+    def ready_players(self) -> List[Player]:
+        ready_players = sel
+
 
 class ActionName(Enum):
     ANSWER_ACTION = 'ANSWER'

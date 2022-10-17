@@ -86,6 +86,19 @@ class ChangeCardUseCase:
             raise AnswerEventIssuerIsNotCurrentPlayer(player_id,
                                                       current_player.guid)
 
+class ReadyUseCase:
+    def __init__(self, game: Game):
+        self._game = game
+
+    def __call__(self, player_id: UUID) -> None:
+        player = self._get_player(player_id)
+        self._game.mark_ready(player)
+
+    def _get_player(self, player_id: UUID) -> Player:
+        for player in self._game.players:
+            if player.guid == player_id:
+                return player
+
 
 class GetGameStateUseCase:
     def __init__(self, game: Game):

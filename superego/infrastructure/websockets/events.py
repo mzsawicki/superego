@@ -11,6 +11,7 @@ class EventAction(Enum):
     CHANGE_CARD = 'CHANGE_CARD'
     SUBSCRIBE = 'SUBSCRIBE'
     READ = 'READ'
+    READY = 'READY'
 
 
 @dataclass(frozen=True, init=True)
