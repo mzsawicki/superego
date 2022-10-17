@@ -850,8 +850,7 @@ class AnswerPhase(GamePhase):
 
     def change_card(self, player: Player) -> 'GamePhase':
         self._ensure_correct_player(player)
-        if self._card_changed:
-            raise CardAlreadyChanged()
+        self._card_changed = True
         self._game_table.change_card()
         return self
 
