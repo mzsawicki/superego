@@ -1,7 +1,8 @@
 from uuid import UUID
 from typing import List
 
-from superego.game.game import Game, Answer, Player, Guess, GameState
+from superego.game.game import Game, Answer, Player, Guess, GameState, Card
+from superego.application.storage import CardStorage
 
 
 class UseError(RuntimeError):
@@ -106,6 +107,16 @@ class GetGameStateUseCase:
 
     def __call__(self) -> GameState:
         return self._game.state
+
+
+class AddCardUseCase:
+    def __init__(self, card_storage: CardStorage):
+        self._storage = card_storage
+
+    def __call__(self, **kwargs) -> None:
+        card = Card(**kwargs)
+        self._storage.store(card)
+
 
 
 def _convert_answer(answer_text: str) -> Answer:
