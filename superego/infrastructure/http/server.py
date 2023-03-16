@@ -7,11 +7,11 @@ from superego.infrastructure.database.storage import DataBaseCardStorage
 from superego.infrastructure.database.dsn import connection_string
 
 
-async def db_context(app_):
+async def db_context(app):
     engine = create_engine(connection_string)
-    app_['db'] = engine
+    app['db'] = engine
     yield
-    app_['db'].close()
+    app['db'].close()
 
 
 async def add_new_card(request):
@@ -30,7 +30,7 @@ async def add_new_card(request):
     return web.Response()
 
 
-if __name__ == '__main__':
+def run():
     app = web.Application()
     app.router.add_post('/cards', add_new_card)
     app['config'] = config
