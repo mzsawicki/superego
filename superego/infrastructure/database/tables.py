@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import MetaData, Table, Column, ForeignKey, Integer, String
+from sqlalchemy import MetaData, Table, Column, Integer, String
 
 meta = MetaData()
 
@@ -10,15 +10,15 @@ deck = Table(
     'deck', meta,
 
     Column('id', Integer, primary_key=True),
-    Column('guid', String(36), default=guid_function, nullable=False),
-    Column('name', String(128), nullable=False)
+    Column('guid', String(36), default=guid_function, nullable=False, unique=True),
+    Column('name', String(128), nullable=False, unique=True)
 )
 
 card = Table(
     'card', meta,
 
     Column('id', Integer, primary_key=True),
-    Column('guid', String(36), default=guid_function, nullable=False),
+    Column('guid', String(36), default=guid_function, nullable=False, unique=True),
     Column('question', String(2048), nullable=False),
     Column('answer_a', String(256), nullable=False),
     Column('answer_b', String(256), nullable=False),

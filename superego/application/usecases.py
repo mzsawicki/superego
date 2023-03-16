@@ -1,8 +1,8 @@
 from uuid import UUID
-from typing import List
+from typing import List, Dict
 
 from superego.game.game import Game, Answer, Player, Guess, GameState, Card
-from superego.application.storage import CardStorage
+from superego.application.storage import CardStorage, PersonStorage
 
 
 class UseError(RuntimeError):
@@ -117,6 +117,29 @@ class AddCardUseCase:
         card = Card(**kwargs)
         self._storage.store(card)
 
+
+class AddPersonUseCase:
+    def __init__(self, person_storage: PersonStorage):
+        self._storage = person_storage
+
+    def __call__(self, name: str) -> None:
+        self._storage.store(name)
+
+
+class RetrievePersonGUIDUseCase:
+    def __init__(self, person_storage: PersonStorage):
+        self._storage = person_storage
+
+    def __call__(self, name: str) -> UUID:
+        return self._storage.retrieve_guid(name)
+
+
+class RetrieveAllPeopleUseCase:
+    def __init__(self, person_storage: PersonStorage):
+        self._storage = person_storage
+
+    def __call__(self) -> Dict[str, UUID]:
+        return self._storage.retrieve_all()
 
 
 def _convert_answer(answer_text: str) -> Answer:
