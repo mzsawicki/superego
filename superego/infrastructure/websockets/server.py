@@ -1,4 +1,5 @@
 import asyncio
+import signal
 from dataclasses import dataclass
 from uuid import UUID
 from abc import ABCMeta, abstractmethod
@@ -60,6 +61,10 @@ class WebsocketsServerConfig:
 class Server(metaclass=ABCMeta):
     @abstractmethod
     def run(self) -> None:
+        raise NotImplemented
+
+    @abstractmethod
+    def stop(self) -> None:
         raise NotImplemented
 
 
@@ -162,9 +167,17 @@ class WebSocketsServer(Server):
         self._port: int = config.port
         self._handler: ConnectionHandler = connection_handler
 
+        self._loop = asyncio.get_event_loop()
+        self._stopped: asyncio.Future = self._loop.create_future()
+        self._loop.add_signal_handler(signal.SIGTERM, self.stop)
+        self._loop.add_signal_handler(signal.SIGINT, self.stop)
+
     def run(self) -> None:
-        asyncio.run(self._serve())
+        self._loop.run_until_complete(self._serve())
+
+    def stop(self) -> None:
+        self._stopped.set_result(True)
 
     async def _serve(self) -> None:
         async with serve(self._handler, self._host, self._port):
-            await asyncio.Future()
+            await self._stopped
