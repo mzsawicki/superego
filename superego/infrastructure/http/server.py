@@ -2,7 +2,7 @@ from aiohttp import web
 from sqlalchemy import create_engine
 import json
 
-from superego.settings import config
+from superego.infrastructure.settings import config
 from superego.application.usecases import AddCardUseCase, AddPersonUseCase, RetrievePersonGUIDUseCase,\
     RetrieveAllPeopleUseCase
 from superego.infrastructure.database.storage import DataBaseCardStorage, DataBasePersonStorage
