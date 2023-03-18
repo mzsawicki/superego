@@ -7,6 +7,7 @@ from typing import Dict
 
 from websockets import WebSocketServerProtocol, serve
 
+from superego.application.interfaces import GameServer
 from superego.infrastructure.websockets.broadcast import Broadcast
 from superego.infrastructure.websockets.events import\
     Event, \
@@ -56,16 +57,6 @@ class WebsocketsServerConfig:
     host: str
     port: int
     encoding: str
-
-
-class Server(metaclass=ABCMeta):
-    @abstractmethod
-    def run(self) -> None:
-        raise NotImplemented
-
-    @abstractmethod
-    def stop(self) -> None:
-        raise NotImplemented
 
 
 class ConnectionHandler(metaclass=ABCMeta):
@@ -157,7 +148,7 @@ class WebSocketsConnectionHandler(ConnectionHandler):
         return event
 
 
-class WebSocketsServer(Server):
+class WebSocketsServer(GameServer):
     def __init__(
             self,
             config: WebsocketsServerConfig,

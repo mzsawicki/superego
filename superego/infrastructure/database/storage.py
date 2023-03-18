@@ -3,8 +3,8 @@ from uuid import UUID
 
 from sqlalchemy import Connection, insert, select, Row
 
-from superego.application.storage import CardStorage, PersonStorage
-from superego.game.game import Card
+from superego.application.interfaces import CardStorage, PersonStorage, DeckStorage
+from superego.game.game import Card, Deck
 
 from superego.infrastructure.database.tables import card as card_table
 from superego.infrastructure.database.tables import person
@@ -65,9 +65,37 @@ class DataBasePersonStorage(PersonStorage):
         dict_ = {name: guid for name, guid in pairs}
         return dict_
 
+    def retrieve_many(self, guids: List[UUID]) -> Dict[str, UUID]:
+        guids_as_str = [str(guid) for guid in guids]
+        result = self._connection.execute(
+            select(person.c.name, person.c.guid).where(person.c.guid.in_(guids_as_str))
+        )
+        pairs = [self._convert_row_to_pair(row) for row in result]
+        dict_ = {name: guid for name, guid in pairs}
+        return dict_
+
     @staticmethod
     def _convert_row_to_pair(row: Row) -> Tuple[str, UUID]:
         name, guid_raw = row
         guid = UUID(guid_raw)
         return name, guid
+
+
+class DatabaseDeckStorage(DeckStorage):
+    def __init__(self, connection: Connection):
+        self._connection = connection
+
+    def get(self) -> Deck:
+        result = self._connection.execute(
+            select(card_table.c.question, card_table.c.answer_a, card_table.c.answer_b, card_table.c.answer_c)
+        )
+        cards = [self._convert_row_to_card(row) for row in result]
+        deck = Deck("Default deck", cards)
+        return deck
+
+    @staticmethod
+    def _convert_row_to_card(row: Row) -> Card:
+        question, answer_a, answer_b, answer_c = row
+        card = Card(question=question, answer_A=answer_a, answer_B=answer_b, answer_C=answer_c)
+        return card
 

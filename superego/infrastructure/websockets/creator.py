@@ -4,13 +4,13 @@ from superego.infrastructure.websockets.handlers import AnswerEventHandler, \
     GuessEventHandler, ChangeCardEventHandler, \
     SubscribeGameBroadcastEventHandler, ReadGameStateEventHandler, \
     ReadyEventHandler
-from superego.infrastructure.websockets.server import\
+from superego.infrastructure.websockets.gameserver import\
     WebsocketsServerConfig, \
     WebSocketsGameObserver,\
     WebSocketsEventRouter,\
     WebSocketsConnectionHandler,\
-    WebSocketsServer,\
-    Server
+    WebSocketsServer
+from superego.application.interfaces import GameServer
 from superego.infrastructure.websockets.broadcast import WebSocketsBroadcast
 from superego.infrastructure.time import\
     SimpleLocalTimeProvider,\
@@ -27,7 +27,7 @@ from superego.application.usecases import\
 def assemble_websockets_server(
         server_config: WebsocketsServerConfig,
         lobby: Lobby
-) -> Server:
+) -> GameServer:
     broadcast = WebSocketsBroadcast()
     game_observer = WebSocketsGameObserver(broadcast)
 
@@ -66,6 +66,48 @@ def assemble_websockets_server(
 
     return server
 
+class GameServerCreator:
+    def __init__(self, config: WebsocketsServerConfig):
+        self._config = config
+
+    def create(self, lobby: Lobby) -> GameServer:
+        broadcast = WebSocketsBroadcast()
+        game_observer = WebSocketsGameObserver(broadcast)
+
+        time_provider = SimpleLocalTimeProvider()
+        game_clock = TimeProviderClock(time_provider)
+        game = Game(lobby, game_clock, game_observer)
+
+        guess = GuessUseCase(game)
+        answer = AnswerUseCase(game)
+        change_card = ChangeCardUseCase(game)
+        get_game_state = GetGameStateUseCase(game)
+        ready = ReadyUseCase(game)
+
+        answer_event_handler = AnswerEventHandler(answer)
+        guess_event_handler = GuessEventHandler(guess)
+        change_card_event_handler = ChangeCardEventHandler(change_card)
+        subscribe_game_event_handler = SubscribeGameBroadcastEventHandler(broadcast)
+        read_game_state_event_handler = ReadGameStateEventHandler(get_game_state)
+        ready_event_handler = ReadyEventHandler(ready)
+        event_router = WebSocketsEventRouter() \
+            .register_handler(EventAction.ANSWER, answer_event_handler) \
+            .register_handler(EventAction.GUESS, guess_event_handler) \
+            .register_handler(EventAction.CHANGE_CARD, change_card_event_handler) \
+            .register_handler(EventAction.SUBSCRIBE, subscribe_game_event_handler) \
+            .register_handler(EventAction.READ, read_game_state_event_handler) \
+            .register_handler(EventAction.READY, ready_event_handler)
+
+        connection_handler = WebSocketsConnectionHandler(
+            self._config.encoding,
+            time_provider,
+            event_router,
+            broadcast
+        )
+
+        server = WebSocketsServer(self._config, connection_handler)
+
+        return server
 
 
 

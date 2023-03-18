@@ -52,9 +52,12 @@ class Deck:
 
 
 class LobbyMember:
-    def __init__(self, name: str):
+    def __init__(self, name: str, guid: UUID = None):
         self._name: str = name
-        self._guid: UUID = uuid.uuid4()
+        if guid:
+            self._guid = guid
+        else:
+            self._guid: UUID = uuid.uuid4()
 
     def __repr__(self) -> str:
         return self._name

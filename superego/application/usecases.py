@@ -1,8 +1,8 @@
 from uuid import UUID
 from typing import List, Dict
 
-from superego.game.game import Game, Answer, Player, Guess, GameState, Card
-from superego.application.storage import CardStorage, PersonStorage
+from superego.game.game import Game, Answer, Player, Guess, GameState, Card, Lobby, LobbyMember, GameSettings
+from superego.application.interfaces import GameServer, CardStorage, PersonStorage, GameServerCreator, DeckStorage
 
 
 class UseError(RuntimeError):
@@ -140,6 +140,29 @@ class RetrieveAllPeopleUseCase:
 
     def __call__(self) -> Dict[str, UUID]:
         return self._storage.retrieve_all()
+
+class StartNewGameUseCase:
+    def __init__(self, person_storage: PersonStorage, deck_storage: DeckStorage, server_creator: GameServerCreator):
+        self._person_storage = person_storage
+        self._deck_storage = deck_storage
+        self._creator = server_creator
+
+    def __call__(self, player_guids: List[UUID]) -> GameServer:
+        people = self._person_storage.retrieve_many(player_guids)
+        deck = self._deck_storage.get()
+        lobby_members = [LobbyMember(name, guid) for name, guid in people.items()]
+        game_settings = GameSettings(deck, 1)
+        lobby = Lobby(lobby_members[0], game_settings)
+        game_server = self._creator.create(lobby)
+        return game_server
+
+
+class StopGameUseCase:
+    def __init__(self, game_server: GameServer):
+        self._game_server = game_server
+
+    def __call__(self) -> None:
+        self._game_server.stop()
 
 
 def _convert_answer(answer_text: str) -> Answer:

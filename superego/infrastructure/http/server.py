@@ -1,17 +1,40 @@
 from aiohttp import web
 from sqlalchemy import create_engine
 import json
+from uuid import UUID
 
-from superego.infrastructure.settings import config
 from superego.application.usecases import AddCardUseCase, AddPersonUseCase, RetrievePersonGUIDUseCase,\
-    RetrieveAllPeopleUseCase
-from superego.infrastructure.database.storage import DataBaseCardStorage, DataBasePersonStorage
+    RetrieveAllPeopleUseCase, StartNewGameUseCase, StopGameUseCase
+from superego.application.interfaces import GameServer
+from superego.infrastructure.settings import config
+from superego.infrastructure.database.storage import DataBaseCardStorage, DataBasePersonStorage, DatabaseDeckStorage
 from superego.infrastructure.database.dsn import connection_string
+from superego.infrastructure.websockets.creator import GameServerCreator
+from superego.infrastructure.websockets.gameserver import WebsocketsServerConfig
 
 
 async def db_context(app):
     engine = create_engine(connection_string)
     app['db'] = engine
+    yield
+
+
+class GameServerPool:
+    def __init__(self):
+        self._instance = None
+
+    def store(self, game_server: GameServer) -> None:
+        self._instance = game_server
+
+    def get(self) -> GameServer:
+        return self._instance
+
+
+game_server_pool = GameServerPool()
+
+async def game_server_context(app):
+    pool = game_server_pool
+    app['game_server_pool'] = pool
     yield
 
 
@@ -60,12 +83,44 @@ async def get_people(request):
             content = {name: str(guid) for name, guid in people.items()}
             return web.json_response(content)
 
+async def start_game(request):
+    with request.app['db'].connect() as connection:
+        person_storage = DataBasePersonStorage(connection)
+        deck_storage = DatabaseDeckStorage(connection)
+        settings = request.app['config']['websockets']
+        websockets_config = WebsocketsServerConfig(settings['host'], settings['port'], settings['encoding'])
+        game_server_creator = GameServerCreator(websockets_config)
+        start_game_ = StartNewGameUseCase(person_storage, deck_storage, game_server_creator)
+
+        data_raw = await request.text()
+        data = json.loads(data_raw)
+        try:
+            player_guids = [UUID(guid) for guid in data['player_guids']]
+        except KeyError as e:
+            raise web.HTTPBadRequest(text='Missing data') from e
+
+        game_server = start_game_(player_guids)
+        request.app['game_server_pool'].store(game_server)
+        return web.Response(status=200)
+
+
+async def stop_game(request):
+    game_server = request.app['game_server_pool'].get()
+    if game_server:
+        stop_game_ = StopGameUseCase(game_server)
+        stop_game_()
+        return web.Response(status=200)
+    else:
+        return web.Response(status=404)
+
 
 def run():
     app = web.Application()
     app.router.add_post('/cards', add_new_card)
     app.router.add_get('/people', get_people)
     app.router.add_post('/people', add_new_person)
+    app.router.add_post('/game', start_game)
+    app.router.add_delete('/game', stop_game)
     app['config'] = config
     app.cleanup_ctx.append(db_context)
     web.run_app(app)
