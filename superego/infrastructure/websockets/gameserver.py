@@ -169,6 +169,10 @@ class WebSocketsServer(GameServer):
     def stop(self) -> None:
         self._stopped.set_result(True)
 
+    @property
+    def address(self):
+        return f'{self._host}:{self._port}'
+
     async def _serve(self) -> None:
         async with serve(self._handler, self._host, self._port):
             await self._stopped

@@ -1,7 +1,8 @@
-from aiohttp import web
-from sqlalchemy import create_engine
 import json
 from uuid import UUID
+
+from aiohttp import web
+from sqlalchemy import create_engine
 
 from superego.application.usecases import AddCardUseCase, AddPersonUseCase, RetrievePersonGUIDUseCase,\
     RetrieveAllPeopleUseCase, StartNewGameUseCase, StopGameUseCase
@@ -27,8 +28,13 @@ class GameServerPool:
         self._instance = game_server
 
     def get(self) -> GameServer:
+        if not self._instance:
+            raise ValueError()
         return self._instance
 
+    @property
+    def is_ongoing(self) -> bool:
+        return self._instance is not None
 
 game_server_pool = GameServerPool()
 
@@ -103,6 +109,14 @@ async def start_game(request):
         request.app['game_server_pool'].store(game_server)
         return web.Response(status=200)
 
+async def ongoing_game(request):
+    game_server_pool_: GameServerPool = request.app['game_server_pool']
+    if game_server_pool_.is_ongoing:
+        game_server = game_server_pool_.get()
+        content = {"address": game_server.address}
+        return web.json_response(content)
+    return web.HTTPNotFound()
+
 
 async def stop_game(request):
     game_server = request.app['game_server_pool'].get()
@@ -121,8 +135,10 @@ def run():
     app.router.add_post('/people', add_new_person)
     app.router.add_post('/game', start_game)
     app.router.add_delete('/game', stop_game)
+    app.router.add_get('/game', ongoing_game)
     app['config'] = config
     app.cleanup_ctx.append(db_context)
+    app.cleanup_ctx.append(game_server_context)
     web.run_app(app)
 
 

@@ -14,6 +14,11 @@ class GameServer(metaclass=ABCMeta):
     def stop(self) -> None:
         raise NotImplemented
 
+    @property
+    @abstractmethod
+    def address(self):
+        raise NotImplemented
+
 
 class GameServerCreator(metaclass=ABCMeta):
     @abstractmethod
