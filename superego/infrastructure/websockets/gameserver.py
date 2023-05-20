@@ -160,7 +160,6 @@ class WebSocketsServer(GameServer):
 
         self._loop = asyncio.get_event_loop()
         self._stopped: asyncio.Future = self._loop.create_future()
-        self._loop.add_signal_handler(signal.SIGTERM, self.stop)
         self._loop.add_signal_handler(signal.SIGINT, self.stop)
 
     def run(self) -> None:
