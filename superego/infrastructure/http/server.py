@@ -83,6 +83,8 @@ async def get_people(request):
         if 'name' in request.rel_url.query:
             name = request.rel_url.query['name']
             guid = retrieve_person_guid(name)
+            if not guid:
+                return web.Response(status=404)
             return web.json_response({'guid': str(guid)})
         else:
             people = retrieve_all_people()
