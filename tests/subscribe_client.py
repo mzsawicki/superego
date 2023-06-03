@@ -13,7 +13,7 @@ async def listen(uri):
     async with connect(uri) as websocket:
         dict_ = {
             'action': 'SUBSCRIBE',
-            'issuer': 'a7da476f-c81b-4bc7-ac17-e7e675ccc95f'
+            'issuer': '55ae1d15-3aa1-4277-90e1-fd711aad6d0d'
         }
         message = json.dumps(dict_)
         data = message.encode(ENCODING)
@@ -22,7 +22,7 @@ async def listen(uri):
         print(response)
         dict_ = {
             'action': 'READ',
-            'issuer': 'a7da476f-c81b-4bc7-ac17-e7e675ccc95f'
+            'issuer': '55ae1d15-3aa1-4277-90e1-fd711aad6d0d'
         }
         message = json.dumps(dict_)
         data = message.encode(ENCODING)

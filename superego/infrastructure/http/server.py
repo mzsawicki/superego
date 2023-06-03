@@ -1,3 +1,4 @@
+import asyncio
 import json
 from uuid import UUID
 
@@ -109,6 +110,7 @@ async def start_game(request):
 
         game_server = start_game_(player_guids)
         request.app['game_server_pool'].store(game_server)
+        asyncio.create_task(game_server.run())
         return web.Response(status=200)
 
 async def ongoing_game(request):

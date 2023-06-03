@@ -7,7 +7,7 @@ from superego.game.game import Lobby, Card, Deck, GameSettings
 
 class GameServer(metaclass=ABCMeta):
     @abstractmethod
-    def run(self) -> None:
+    async def run(self) -> None:
         raise NotImplemented
 
     @abstractmethod

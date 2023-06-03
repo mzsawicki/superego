@@ -153,6 +153,8 @@ class StartNewGameUseCase:
         lobby_members = [LobbyMember(name, guid) for name, guid in people.items()]
         game_settings = GameSettings(deck, 1)
         lobby = Lobby(lobby_members[0], game_settings)
+        for member in lobby_members:
+            lobby.add_member(member)
         game_server = self._creator.create(lobby)
         return game_server
 
