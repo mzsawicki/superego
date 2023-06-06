@@ -1,2 +1,3 @@
 # SuperEGO
-Server for SuperEGO, digitalized fan version of popular social game EGO
+
+Server fot digitalized version of a social card game named EGO
