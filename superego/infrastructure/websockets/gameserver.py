@@ -159,14 +159,12 @@ class WebSocketsServer(GameServer):
         self._handler: ConnectionHandler = connection_handler
 
         self._loop = asyncio.get_event_loop()
-        self._stopped: asyncio.Future = self._loop.create_future()
-        self._loop.add_signal_handler(signal.SIGINT, self.stop)
 
     async def run(self) -> None:
         await self._serve()
 
     def stop(self) -> None:
-        self._stopped.set_result(True)
+        pass
 
     @property
     def address(self):
@@ -174,4 +172,4 @@ class WebSocketsServer(GameServer):
 
     async def _serve(self) -> None:
         async with serve(self._handler, self._host, self._port):
-            await self._stopped
+            await asyncio.Future()
