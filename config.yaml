@@ -4,3 +4,5 @@ websockets:
   host: 0.0.0.0
   port: 8000
   encoding: utf-8
+game:
+  rounds: 10

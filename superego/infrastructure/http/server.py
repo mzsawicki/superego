@@ -99,7 +99,8 @@ async def start_game(request):
         settings = request.app['config']['websockets']
         websockets_config = WebsocketsServerConfig(settings['host'], settings['port'], settings['encoding'])
         game_server_creator = GameServerCreator(websockets_config)
-        start_game_ = StartNewGameUseCase(person_storage, deck_storage, game_server_creator)
+        game_rounds = int(request.app['config']['game']['rounds'])
+        start_game_ = StartNewGameUseCase(person_storage, deck_storage, game_server_creator, game_rounds)
 
         data_raw = await request.text()
         data = json.loads(data_raw)

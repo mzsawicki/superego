@@ -142,16 +142,19 @@ class RetrieveAllPeopleUseCase:
         return self._storage.retrieve_all()
 
 class StartNewGameUseCase:
-    def __init__(self, person_storage: PersonStorage, deck_storage: DeckStorage, server_creator: GameServerCreator):
+    def __init__(self, person_storage: PersonStorage,
+                 deck_storage: DeckStorage, server_creator: GameServerCreator,
+                 rounds_count: int):
         self._person_storage = person_storage
         self._deck_storage = deck_storage
         self._creator = server_creator
+        self._rounds_count = rounds_count
 
     def __call__(self, player_guids: List[UUID]) -> GameServer:
         people = self._person_storage.retrieve_many(player_guids)
         deck = self._deck_storage.get()
         lobby_members = [LobbyMember(name, guid) for name, guid in people.items()]
-        game_settings = GameSettings(deck, 1)
+        game_settings = GameSettings(deck, self._rounds_count)
         lobby = Lobby(lobby_members[0], game_settings)
         for member in lobby_members:
             lobby.add_member(member)
