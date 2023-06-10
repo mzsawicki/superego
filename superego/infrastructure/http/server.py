@@ -33,6 +33,9 @@ class GameServerPool:
             raise ValueError()
         return self._instance
 
+    def flush(self):
+        self._instance = None
+
     @property
     def is_ongoing(self) -> bool:
         return self._instance is not None
@@ -124,10 +127,12 @@ async def ongoing_game(request):
 
 
 async def stop_game(request):
-    game_server = request.app['game_server_pool'].get()
+    game_server_pool_: GameServerPool = request.app['game_server_pool']
+    game_server = game_server_pool_.get()
     if game_server:
         stop_game_ = StopGameUseCase(game_server)
         stop_game_()
+        game_server_pool.flush()
         return web.Response(status=200)
     else:
         return web.Response(status=404)
