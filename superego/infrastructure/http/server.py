@@ -149,7 +149,10 @@ def run():
     app['config'] = config
     app.cleanup_ctx.append(db_context)
     app.cleanup_ctx.append(game_server_context)
-    web.run_app(app)
+
+    host = config['http']['host']
+    port = config['http']['port']
+    web.run_app(app, host=host, port=port)
 
 
 if __name__ == '__main__':
