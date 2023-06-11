@@ -1,12 +1,12 @@
 #!python3
 
 import argparse
-import uuid
 from uuid import UUID
 
 from superego.application.usecases import RetrieveAllPeopleUseCase, AddPersonUseCase, RemovePersonUseCase
 from superego.infrastructure.database.engine import get_db
 from superego.infrastructure.database.storage import DataBasePersonStorage
+from superego.infrastructure.http.server import run as run_http_server
 
 
 db = get_db().connect()
@@ -37,9 +37,17 @@ if __name__ == '__main__':
     people_remove_parser = people_subparsers.add_parser('remove', help='Remove player')
     people_remove_parser.add_argument('guid', type=UUID, action='store')
 
+    # Server
+    server_parser = subparsers.add_parser('server', help='HTTP server management')
+    server_subparsers = server_parser.add_subparsers(required=True, metavar='server subcommand',
+                                                     dest='server_subcommand')
+    server_run_parser = server_subparsers.add_parser('start', help='Start HTTP server')
+
     # Game
-    game_parser = subparsers.add_parser('game', help='Game session management')
+    game_parser = subparsers.add_parser('game', help='Game session management (requires HTTP server running)')
     game_subparsers = game_parser.add_subparsers(required=True, metavar='game subcommand', dest='game_subcommand')
+    game_check_parser = game_subparsers.add_parser('check', help='Check if there is ongoing game session')
+    game_show_parser = game_subparsers.add_parser('show', help='Show ongoing game state')
     game_start_parser = game_subparsers.add_parser('start', help='Start game session')
     game_stop_parser = game_subparsers.add_parser('stop', help='Stop and close game session')
 
@@ -54,5 +62,14 @@ if __name__ == '__main__':
                     add_person(args.name)
                 case 'remove':
                     remove_person(args.guid)
+                case _:
+                    print(f'Unknown subcommand: {args.people_subcommand}')
+        case 'server':
+            match args.server_subcommand:
+                case 'start':
+                    run_http_server()
+                case _:
+                    print(f'Unknown subcommand: {args.server_subcommand}')
+
         case 'game':
             pass
