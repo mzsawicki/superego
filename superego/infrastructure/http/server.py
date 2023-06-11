@@ -1,22 +1,20 @@
-import asyncio
 import json
 from uuid import UUID
 
 from aiohttp import web
-from sqlalchemy import create_engine
 
 from superego.application.usecases import AddCardUseCase, AddPersonUseCase, RetrievePersonGUIDUseCase,\
     RetrieveAllPeopleUseCase, StartNewGameUseCase, StopGameUseCase
 from superego.application.interfaces import GameServer
 from superego.infrastructure.settings import config
 from superego.infrastructure.database.storage import DataBaseCardStorage, DataBasePersonStorage, DatabaseDeckStorage
-from superego.infrastructure.database.dsn import connection_string
+from superego.infrastructure.database.engine import get_db
 from superego.infrastructure.websockets.creator import GameServerCreator
 from superego.infrastructure.websockets.gameserver import WebsocketsServerConfig
 
 
 async def db_context(app):
-    engine = create_engine(connection_string)
+    engine = get_db()
     app['db'] = engine
     yield
 
@@ -77,6 +75,10 @@ async def add_new_person(request):
             raise web.HTTPBadRequest(text='Missing data') from e
         add_person(name)
     return web.Response(status=200)
+
+async def remove_person(request):
+    with request.app['db'].connect() as connection:
+        person_storage = DataBasePersonStorage(connection)
 
 
 async def get_people(request):

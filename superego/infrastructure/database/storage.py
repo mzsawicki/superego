@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 from uuid import UUID
 
-from sqlalchemy import Connection, insert, select, Row
+from sqlalchemy import Connection, insert, select, Row, delete
 
 from superego.application.interfaces import CardStorage, PersonStorage, DeckStorage
 from superego.game.game import Card, Deck
@@ -73,6 +73,12 @@ class DataBasePersonStorage(PersonStorage):
         pairs = [self._convert_row_to_pair(row) for row in result]
         dict_ = {name: guid for name, guid in pairs}
         return dict_
+
+    def remove(self, guid: UUID) -> None:
+        self._connection.execute(
+            delete(person).where(person.c.guid == str(guid))
+        )
+        self._connection.commit()
 
     @staticmethod
     def _convert_row_to_pair(row: Row) -> Tuple[str, UUID]:

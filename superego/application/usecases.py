@@ -126,6 +126,14 @@ class AddPersonUseCase:
         self._storage.store(name)
 
 
+class RemovePersonUseCase:
+    def __init__(self, person_storage: PersonStorage):
+        self._storage = person_storage
+
+    def __call__(self, guid: UUID) -> None:
+        self._storage.remove(guid)
+
+
 class RetrievePersonGUIDUseCase:
     def __init__(self, person_storage: PersonStorage):
         self._storage = person_storage

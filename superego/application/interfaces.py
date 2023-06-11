@@ -53,6 +53,10 @@ class PersonStorage(metaclass=ABCMeta):
     def retrieve_many(self, guids: List[UUID]) -> Dict[str, UUID]:
         raise NotImplemented
 
+    @abstractmethod
+    def remove(self, guid: UUID) -> None:
+        raise NotImplemented
+
 
 class DeckStorage(metaclass=ABCMeta):
     @abstractmethod

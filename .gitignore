@@ -154,3 +154,7 @@ cython_debug/
 .python-version
 
 .idea/
+
+config.yaml
+
+.db
