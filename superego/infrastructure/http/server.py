@@ -4,7 +4,7 @@ from uuid import UUID
 from aiohttp import web
 
 from superego.application.usecases import AddCardUseCase, AddPersonUseCase, RetrievePersonGUIDUseCase,\
-    RetrieveAllPeopleUseCase, StartNewGameUseCase, StopGameUseCase
+    RetrieveAllPeopleUseCase, StartNewGameUseCase, StopGameUseCase, RemovePersonUseCase
 from superego.application.interfaces import GameServer
 from superego.infrastructure.settings import config
 from superego.infrastructure.database.storage import DataBaseCardStorage, DataBasePersonStorage, DatabaseDeckStorage
@@ -79,7 +79,15 @@ async def add_new_person(request):
 async def remove_person(request):
     with request.app['db'].connect() as connection:
         person_storage = DataBasePersonStorage(connection)
-
+        retrieve_person_guid = RetrievePersonGUIDUseCase(person_storage)
+        remove_person_ = RemovePersonUseCase(person_storage)
+        if 'name' in request.rel_url.query:
+            guid = retrieve_person_guid(request.rel_url.query['name'])
+            if not guid:
+                return web.Response(status=404)
+            remove_person_(guid)
+        else:
+            return web.Response(status=400)
 
 async def get_people(request):
     with request.app['db'].connect() as connection:
@@ -145,6 +153,7 @@ def run():
     app.router.add_post('/cards', add_new_card)
     app.router.add_get('/people', get_people)
     app.router.add_post('/people', add_new_person)
+    app.router.add_delete('/people', remove_person)
     app.router.add_post('/game', start_game)
     app.router.add_delete('/game', stop_game)
     app.router.add_get('/game', ongoing_game)
