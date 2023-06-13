@@ -147,6 +147,9 @@ async def stop_game(request):
     else:
         return web.Response(status=404)
 
+async def health(request):
+    return web.Response(status=200)
+
 
 def run():
     app = web.Application()
@@ -157,6 +160,7 @@ def run():
     app.router.add_post('/game', start_game)
     app.router.add_delete('/game', stop_game)
     app.router.add_get('/game', ongoing_game)
+    app.router.add_get('/health', health)
     app['config'] = config
     app.cleanup_ctx.append(db_context)
     app.cleanup_ctx.append(game_server_context)
